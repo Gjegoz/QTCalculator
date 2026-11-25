@@ -6,8 +6,11 @@
 #include <QPushButton>
 #include <QGridLayout>
 #include <QStringList>
+#include <vector>
 
 #include "Operation.h"
+
+using namespace::std;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,11 +28,13 @@ public:
 
 private:
     QLineEdit *line;
+    vector<Operation*> operations;
 
     double storedNum = 0;
     bool operationClicked = 0;
+
     Operation *currentOperation = nullptr;
-    Operation* createOperation(QString operation);
+    Operation* findOperation(QString symbol);
     QString formatNumber(double number);
 
 private slots:

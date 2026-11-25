@@ -15,6 +15,13 @@ Calculator::Calculator(QWidget *parent): QMainWindow(parent)
     line->setReadOnly(1);
     grid->addWidget(line, 0, 0, 1, 3);
 
+    operations.push_back(new Equal());
+    operations.push_back(new Addition());
+    operations.push_back(new Substraction());
+    operations.push_back(new Multiplication);
+    operations.push_back(new Division);
+    operations.push_back(new Factorial);
+
 
     // Кнопки 0-9
     for (int num = 9; num >= 0; num--){
@@ -40,14 +47,11 @@ Calculator::Calculator(QWidget *parent): QMainWindow(parent)
     grid->addWidget(commaButton, 4, 2, 1, 1);
     connect(commaButton, &QPushButton::clicked, this, &Calculator::onCommaClicked);
 
-
-    // Кнопки операций
-    QStringList operations = {"=", "*", "-", "+", "!"};
-
-    for (int num = 0; num < operations.length(); num++){
-        QPushButton *button = new QPushButton(operations[num], centralWidget);
+    int row = 0;
+    for (Operation* operation : operations){
+        QPushButton *button = new QPushButton(operation->getSymbol(), centralWidget);
         button->setMinimumSize(100, 100);
-        grid->addWidget(button, num, 4);
+        grid->addWidget(button, row++, 4);
 
         connect(button, &QPushButton::clicked, this, &Calculator::onOperationClicked);
     }
@@ -78,58 +82,39 @@ void Calculator::onOperationClicked(){
 
     if (button){
         double currentNum = line->text().toDouble();
-        QString operation = button->text();
+        QString symbol = button->text();
 
         if (currentOperation != nullptr){
             storedNum = currentOperation->exec(storedNum, currentNum);
-
-            delete currentOperation;
-            currentOperation = nullptr;
         }
+
         else{
             storedNum = currentNum;
         }
 
-        if (operation == "!"){
-            currentOperation = createOperation(operation);
+        currentOperation = findOperation(symbol);
 
+        if (symbol == "!" || symbol == "="){
             if (currentOperation != nullptr){
                 storedNum = currentOperation->exec(storedNum, 0);
-
-                delete currentOperation;
-                currentOperation = nullptr;
             }
 
+            currentOperation = nullptr;
             line->setText(formatNumber(storedNum));
-            operationClicked = 1;
-
-            return;
         }
-
-        if (operation != "=")
-            currentOperation = createOperation(operation);
-
         line->setText(formatNumber(storedNum));
         operationClicked = 1;
     }
 }
 
-Operation* Calculator::createOperation(QString operation)
+
+Operation* Calculator::findOperation(QString Symbol)
 {
-    if (operation == "+")
-        return new Addition();
-
-    if (operation == "-")
-        return new Subtraction();
-
-    if (operation == "*")
-        return new Multiplication();
-
-    if (operation == ":")
-        return new Division();
-
-    if (operation == "!")
-        return new Factorial();
+    for (Operation* operation : operations){
+        if (operation->getSymbol() == Symbol){
+            return operation;
+        }
+    }
 
     return nullptr;
 }
@@ -158,5 +143,7 @@ QString Calculator::formatNumber(double number)
 
 Calculator::~Calculator()
 {
-    delete currentOperation;
+    for (Operation* operation : operations){
+        delete operation;
+    }
 }
